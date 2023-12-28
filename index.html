@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel=stylesheet type="text/css" media="screen" href="style.css" />
+    <title>Convert SATS - EUR</title>
+
+</head>
+<body>
+    <div class="converter-container">
+        <div class="logo-container">
+            <img src="btc.png" alt="" width="7%">
+        </div>
+        <h3>SATS</h3>
+        <input type="number" min="0" id="satoshiInput" placeholder="Enter satoshi amount" oninput="convert('satoshiInput', 'euroOutput')">
+        <br>
+        <h3>EUR</h3>
+        <input type="number" min="0" id="euroOutput" placeholder="Enter euro amount" oninput="convert('euroOutput', 'satoshiInput')">
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script>
+        // Fetch BTC to EUR conversion rate from CoinGecko API on page load
+        $(document).ready(function () {
+            $.ajax({
+                url: 'https://api.coingecko.com/api/v3/simple/price',
+                data: {
+                    ids: 'bitcoin',
+                    vs_currencies: 'eur'
+                },
+                success: function (data) {
+                    // Store the conversion rate in a variable
+                    var btcToEurRate = data.bitcoin.eur;
+
+                    // Attach the conversion rate to the input element for later use
+                    $('#satoshiInput').data('btcToEurRate', btcToEurRate);
+
+                    // Trigger initial conversion when the page loads
+                    convert('satoshiInput', 'euroOutput');
+                },
+                error: function () {
+                    alert("Error fetching conversion rate from CoinGecko API.");
+                }
+            });
+        });
+
+        function convert(inputFromId, inputToId) {
+            var amountFrom = $('#' + inputFromId).val();
+
+            // Check if the amount is valid
+            if (isNaN(amountFrom) || amountFrom < 0) {
+                $('#' + inputToId).val('');
+                return;
+            }
+
+            // Retrieve the stored conversion rate
+            var btcToEurRate = $('#satoshiInput').data('btcToEurRate');
+
+            if (inputFromId === 'satoshiInput') {
+                // Convert satoshi to Euro
+                var euroAmount = (amountFrom / 100000000) * btcToEurRate;
+                $('#' + inputToId).val(euroAmount.toFixed(2));
+            } else {
+                // Convert Euro to satoshi
+                var satoshiAmount = (amountFrom / btcToEurRate) * 100000000;
+                $('#' + inputToId).val(satoshiAmount.toFixed(0));
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,72 +1,76 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel=stylesheet type="text/css" media="screen" href="style.css" />
-    <title>Convert SATS - EUR</title>
+    <meta name="description"
+        content="SatsEuro — Convert Bitcoin satoshis to euros and euros to satoshis with live market rates.">
 
+    <link rel="icon" type="image/png" href="btc.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="style.css">
+
+    <title>SatsEuro — BTC ↔ EUR Converter</title>
 </head>
+
 <body>
-    <div class="converter-container">
-        <div class="logo-container">
-            <img src="btc.png" alt="" width="7%">
-        </div>
-        <h3>SATS</h3>
-        <input type="number" min="0" id="satoshiInput" placeholder="Enter satoshi amount" oninput="convert('satoshiInput', 'euroOutput')">
-        <br>
-        <h3>EUR</h3>
-        <input type="number" min="0" id="euroOutput" placeholder="Enter euro amount" oninput="convert('euroOutput', 'satoshiInput')">
-    </div>
+    <main class="app">
+        <section class="converter" aria-labelledby="converter-heading">
 
-    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-    <script>
-        // Fetch BTC to EUR conversion rate from CoinGecko API on page load
-        $(document).ready(function () {
-            $.ajax({
-                url: 'https://api.coingecko.com/api/v3/simple/price',
-                data: {
-                    ids: 'bitcoin',
-                    vs_currencies: 'eur'
-                },
-                success: function (data) {
-                    // Store the conversion rate in a variable
-                    var btcToEurRate = data.bitcoin.eur;
+            <header class="converter__header">
+                <img src="btc.png" alt="Bitcoin logo" class="converter__logo" width="48" height="48">
+                <h1 id="converter-heading" class="converter__title">
+                    Sats<span class="converter__title--accent">Euro</span>
+                </h1>
+                <p class="converter__subtitle">Live BTC ↔ EUR converter</p>
+            </header>
 
-                    // Attach the conversion rate to the input element for later use
-                    $('#satoshiInput').data('btcToEurRate', btcToEurRate);
+            <form class="converter__form" aria-label="Currency conversion form">
 
-                    // Trigger initial conversion when the page loads
-                    convert('satoshiInput', 'euroOutput');
-                },
-                error: function () {
-                    alert("Error fetching conversion rate from CoinGecko API.");
-                }
-            });
-        });
+                <div class="converter__field">
+                    <label for="sats-input" class="converter__label">SATS</label>
+                    <input type="text" inputmode="numeric" id="sats-input" class="converter__input" placeholder="0"
+                        autocomplete="off">
+                </div>
 
-        function convert(inputFromId, inputToId) {
-            var amountFrom = $('#' + inputFromId).val();
+                <div class="converter__swap" aria-hidden="true">
+                    <svg class="converter__swap-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28"
+                        height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <polyline points="7 3 7 21"></polyline>
+                        <polyline points="3 17 7 21 11 17"></polyline>
+                        <polyline points="17 21 17 3"></polyline>
+                        <polyline points="13 7 17 3 21 7"></polyline>
+                    </svg>
+                </div>
 
-            // Check if the amount is valid
-            if (isNaN(amountFrom) || amountFrom < 0) {
-                $('#' + inputToId).val('');
-                return;
-            }
+                <div class="converter__field">
+                    <label for="eur-input" class="converter__label">EUR</label>
+                    <input type="text" inputmode="decimal" id="eur-input" class="converter__input" placeholder="0.00"
+                        autocomplete="off">
+                </div>
 
-            // Retrieve the stored conversion rate
-            var btcToEurRate = $('#satoshiInput').data('btcToEurRate');
+            </form>
 
-            if (inputFromId === 'satoshiInput') {
-                // Convert satoshi to Euro
-                var euroAmount = (amountFrom / 100000000) * btcToEurRate;
-                $('#' + inputToId).val(euroAmount.toFixed(2));
-            } else {
-                // Convert Euro to satoshi
-                var satoshiAmount = (amountFrom / btcToEurRate) * 100000000;
-                $('#' + inputToId).val(satoshiAmount.toFixed(0));
-            }
-        }
-    </script>
+            <footer class="converter__footer">
+                <p id="rate-display" class="converter__rate" aria-live="polite">Loading rate&hellip;</p>
+                <p id="status-message" class="converter__status" role="status" aria-live="polite"></p>
+            </footer>
+
+        </section>
+    </main>
+
+    <noscript>
+        <p style="text-align:center;padding:2rem;color:#ccc;">
+            Please enable JavaScript to use the SatsEuro converter.
+        </p>
+    </noscript>
+
+    <script src="app.js" defer></script>
 </body>
+
 </html>

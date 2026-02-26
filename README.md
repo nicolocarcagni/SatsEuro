@@ -1,12 +1,11 @@
-# SatsEuro
+# ₿ SatsEuro
 
 https://nicolocarcagni.github.io/SatsEuro/
 
-SatsEuro is a sleek, web-based calculator that lets you instantly convert between Bitcoin satoshis (sats) and Euros (EUR) that just works.
+---
+<img width="391" height="461" alt="immagine" src="https://github.com/user-attachments/assets/d5f5b4b6-8858-45f6-936f-4f1875c4533d" />
 
-## 📸 Screenshots
-
-
+---
 
 ## ✨ Key Features
 

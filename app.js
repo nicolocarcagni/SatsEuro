@@ -15,7 +15,7 @@ let btcToEurRate = null;
 let refreshTimer = null;
 let lastActiveInput = satsInput;
 
-// Guards against conversion loops when we programmatically set a field value.
+// fix loop infiniti
 let isProgrammaticUpdate = false;
 
 const fmtRate = new Intl.NumberFormat("en-US", {
@@ -24,11 +24,6 @@ const fmtRate = new Intl.NumberFormat("en-US", {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
 });
-
-
-// ---------------------------------------------------------------------------
-//  Utilities
-// ---------------------------------------------------------------------------
 
 function debounce(fn, delay) {
     let timer;
@@ -48,7 +43,6 @@ function parseEurDisplay(str) {
     return Number(str.replace(/\s/g, ""));
 }
 
-/** Inserts space thousand separators into a pure-digit string. */
 function formatSatsString(raw) {
     if (!raw) return "";
     return raw.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
@@ -58,16 +52,7 @@ function formatEurString(raw) {
     return raw;
 }
 
-
-// ---------------------------------------------------------------------------
-//  Input validation — keydown gate
-// ---------------------------------------------------------------------------
-
-/**
- * First line of defence: blocks non-numeric keys at the keyboard level.
- * Commas in the EUR field are silently replaced with a dot so the user
- * never has to remember which separator to use.
- */
+// Keep valid numeric input only and convert commas to dots al volo.
 function attachKeydownGuard(inputEl, allowDot) {
     inputEl.addEventListener("keydown", (e) => {
         const key = e.key;
@@ -85,7 +70,7 @@ function attachKeydownGuard(inputEl, allowDot) {
 
         if (/^\d$/.test(key)) return;
 
-        // Comma → dot coercion (EUR only)
+        // conversione
         if (key === "," && allowDot) {
             e.preventDefault();
             insertCharAtCaret(inputEl, ".");
@@ -114,19 +99,6 @@ function insertCharAtCaret(inputEl, char) {
 attachKeydownGuard(satsInput, false);
 attachKeydownGuard(eurInput, true);
 
-
-// ---------------------------------------------------------------------------
-//  Live formatting with caret preservation
-// ---------------------------------------------------------------------------
-
-/**
- * Sanitises, re-formats, and restores the caret in the SATS field.
- *
- * Caret strategy: we track the user's "digit index" (how many real digits
- * sit to the left of the caret) before formatting, then walk the formatted
- * string to place the caret at the same digit index — skipping any
- * newly-inserted spaces.
- */
 function handleSatsInput() {
     if (isProgrammaticUpdate) return;
 
@@ -143,7 +115,6 @@ function handleSatsInput() {
     const digitIndexAtCaret = caret - spacesBeforeCaret;
     let newCaret = 0;
     let digitsSeen = 0;
-
     for (let i = 0; i < formatted.length; i++) {
         if (formatted[i] !== " ") digitsSeen++;
         if (digitsSeen === digitIndexAtCaret) { newCaret = i + 1; break; }
@@ -151,15 +122,10 @@ function handleSatsInput() {
     if (digitIndexAtCaret === 0) newCaret = 0;
 
     el.selectionStart = el.selectionEnd = newCaret;
-
     lastActiveInput = satsInput;
     debouncedConvertFromSats();
 }
 
-/**
- * Sanitises the EUR field: strips non-numeric/non-dot chars, enforces a
- * single decimal point, and caps fractional digits at MAX_EUR_DP.
- */
 function handleEurInput() {
     if (isProgrammaticUpdate) return;
 
@@ -192,10 +158,7 @@ function handleEurInput() {
     debouncedConvertFromEur();
 }
 
-/**
- * Returns the number of characters stripped from `original[0..caretPos)`
- * during sanitisation, so we can shift the caret left by that amount.
- */
+// Adjust the cursor position in base al numero di caratteri rimossi
 function countRemovedChars(original, cleaned, caretPos) {
     const before = original.slice(0, caretPos);
     let cleanedBefore = before.replace(/[^\d.]/g, "");
@@ -210,11 +173,6 @@ function countRemovedChars(original, cleaned, caretPos) {
 
 satsInput.addEventListener("input", handleSatsInput);
 eurInput.addEventListener("input", handleEurInput);
-
-
-// ---------------------------------------------------------------------------
-//  Conversion
-// ---------------------------------------------------------------------------
 
 function convertFromSats() {
     const raw = parseSatsDisplay(satsInput.value);
@@ -236,7 +194,6 @@ function convertFromEur() {
     setFieldValue(satsInput, formatSatsString(String(sats)));
 }
 
-/** Sets a field's value without triggering its formatting handler. */
 function setFieldValue(inputEl, value) {
     isProgrammaticUpdate = true;
     inputEl.value = value;
@@ -250,11 +207,6 @@ function reconvert() {
 
 const debouncedConvertFromSats = debounce(convertFromSats, DEBOUNCE_MS);
 const debouncedConvertFromEur = debounce(convertFromEur, DEBOUNCE_MS);
-
-
-// ---------------------------------------------------------------------------
-//  API
-// ---------------------------------------------------------------------------
 
 async function fetchRate() {
     setStatus("Fetching rate…", "");
@@ -281,11 +233,6 @@ async function fetchRate() {
     }
 }
 
-
-// ---------------------------------------------------------------------------
-//  Status helper
-// ---------------------------------------------------------------------------
-
 function setStatus(message, type) {
     statusMessage.textContent = message;
     statusMessage.className = "converter__status";
@@ -293,11 +240,6 @@ function setStatus(message, type) {
     if (type === "error") statusMessage.classList.add("converter__status--error");
     if (type === "success") statusMessage.classList.add("converter__status--success");
 }
-
-
-// ---------------------------------------------------------------------------
-//  Init
-// ---------------------------------------------------------------------------
 
 document.querySelector(".converter__form")?.addEventListener("submit", (e) => e.preventDefault());
 
